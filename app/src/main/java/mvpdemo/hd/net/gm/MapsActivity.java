@@ -3,7 +3,6 @@ package mvpdemo.hd.net.gm;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -22,10 +21,15 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PointOfInterest;
+
+import java.io.IOException;
+import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         , GoogleApiClient.ConnectionCallbacks
@@ -120,7 +124,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng latLng) {
                 Log.e("XXX", this.getClass().getSimpleName() + " onMapClick: " + latLng);
-                mMap.addMarker(new MarkerOptions().position(latLng).title("力宝广场:"+latLng));
+//                mMap.addMarker(new MarkerOptions().position(latLng).title("力宝广场:" + latLng));
+                HotelRequest.testLocal(getApplicationContext(), latLng.latitude + "," + latLng.longitude, hotelCallBack);
+//                HotelRequest.fetchHotelByGoogle(getApplicationContext());
             }
         });
 //        googleMap.setIndoorEnabled(false);
@@ -132,12 +138,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                }
                                            }
         );
-        mMap.setOnPoiClickListener(new GoogleMap.OnPoiClickListener() {
-            @Override
-            public void onPoiClick(PointOfInterest pointOfInterest) {
-                Log.e("XXX", this.getClass().getSimpleName() + " onPoiClick: " + pointOfInterest);
-            }
-        });
+//        mMap.setOnPoiClickListener(new GoogleMap.OnPoiClickListener() {
+//            @Override
+//            public void onPoiClick(PointOfInterest pointOfInterest) {
+//                Log.e("XXX", this.getClass().getSimpleName() + " onPoiClick: " + pointOfInterest);
+//            }
+//        });
 
 //        try {
 //            // Customise the styling of the base map using a JSON object defined
@@ -180,6 +186,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.e("XXX", this.getClass().getSimpleName() + " onMarkerClick: ");
+//        HotelRequest.fetchHotelByGoogle();
         return false;
     }
 
@@ -195,5 +202,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         return myLocation;
+    }
+
+    Callback hotelCallBack = new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {
+            Log.e("XXX", this.getClass().getSimpleName() + " testLocal onFailure: call:" + call + " " + e);
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            String result = response.body().string();
+//            Log.e("XXX", this.getClass().getSimpleName() + " testLocal onResponse: call:" + call);
+//            Log.e("XXX", this.getClass().getSimpleName() + " testLocal onResponse: response:" + result);
+//            HotelBean bean = HotelBean.parse(result);
+//            Log.e("XXX", this.getClass().getSimpleName() + " onResponse: " + bean);
+
+            HotelBean bean2 = HotelBean.parse(result, "lodging");
+            Log.e("XXX", this.getClass().getSimpleName() + " onResponse: filter:" + bean2);
+            addMarkers(bean2.results);
+
+        }
+    };
+
+    private void addMarkers(final List<HotelBean.ResultData> result) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (HotelBean.ResultData data : result) {
+                    if (data.name.startsWith("**")) {
+                        MarkerOptions options = new MarkerOptions().position(new LatLng(data.geometry.location.lat, data.geometry.location.lng)).title(data.name);
+                        Log.e("XXX", this.getClass().getSimpleName() + " run: "+options.isVisible());
+//                        GMarker gMarker;
+                        mMap.addMarker(options);
+                    }
+                }
+            }
+        });
     }
 }
