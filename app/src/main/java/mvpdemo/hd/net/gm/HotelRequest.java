@@ -63,7 +63,7 @@ public class HotelRequest {
         }
 
 
-         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?radius=500&types=hotel&language=zh-CN";
+         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?radius=500&type=lodging";
 //        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
 //        url = url + "?" + obj.toString();
 //        url = "http://172.16.102.74:8077/test/okhttp.json";
@@ -71,7 +71,7 @@ public class HotelRequest {
 //        url = url + "&sensor=true";
         url = url + "&key=" + "AIzaSyBMGzm-1zXeLX-QNi9N7ozRJWZlREyYEe4";
         url = url + "&location=" + location;
-//        url = url + "&location=" + location;
+//        url = url + "&language==" + "zh-CN";
 //        url = url + "&location=" + location;
 //        url = url + "&location=" + location;
         OkHttpRequest.get(context, url, obj.toString(), hotelCallBack);

@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -112,7 +113,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
-        sydney = new LatLng(31.22445747329499, 121.47586964070796);
+//        sydney = new LatLng(31.22445747329499, 121.47586964070796);
         mMap.addMarker(new MarkerOptions().position(sydney).title("力宝广场"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13));
 
@@ -220,7 +221,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             HotelBean bean2 = HotelBean.parse(result, "lodging");
             Log.e("XXX", this.getClass().getSimpleName() + " onResponse: filter:" + bean2);
-            addMarkers(bean2.results);
+            if (bean2.type_count > 0) {
+                addMarkers(bean2.results);
+            }
 
         }
     };
@@ -229,15 +232,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                for (Marker m : markers) {
+                    m.remove();
+                }
+
                 for (HotelBean.ResultData data : result) {
                     if (data.name.startsWith("**")) {
-                        MarkerOptions options = new MarkerOptions().position(new LatLng(data.geometry.location.lat, data.geometry.location.lng)).title(data.name);
-                        Log.e("XXX", this.getClass().getSimpleName() + " run: "+options.isVisible());
-//                        GMarker gMarker;
-                        mMap.addMarker(options);
+                        MarkerOptions options = new MarkerOptions().position(new LatLng(data.geometry.location.lat, data.geometry.location.lng)).title(data.name.substring(2));
+                        Log.e("XXX", this.getClass().getSimpleName() + " run: " + options.isVisible());
+                        Marker marker = mMap.addMarker(options);
+                        markers.add(marker);
                     }
+                }
+                for (Marker m : markers) {
+                    m.showInfoWindow();
                 }
             }
         });
     }
+
+    List<Marker> markers = new ArrayList<>();
 }
